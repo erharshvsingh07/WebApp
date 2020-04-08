@@ -1,5 +1,6 @@
 
 node {
+     try{
     // Get Artifactory server instance, defined in the Artifactory Plugin administration page.
     def server = Artifactory.server "artifactory"
     // Create an Artifactory Maven instance.
@@ -50,6 +51,22 @@ node {
     stage('UI QA') {
         buildInfo = rtMaven.run pom: 'functionaltest/pom.xml', goals: 'test'
 	publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: '\\functionaltest\\target\\surefire-reports', reportFiles: 'index.html', reportName: 'UI Test Report', reportTitles: ''])
-    	}
+    	
     }
+	
+    stage('Deploy to Prod') {
+	      deploy adapters: [tomcat7(credentialsId: 'AWStomcat', path: '', url: 'http://3.14.10.76:8080/')], contextPath: '/ProdWebapp', war: '**/*.war'
+    }
+
+    stage('Sanity Test') {
+        buildInfo = rtMaven.run pom: 'Acceptancetest/pom.xml', goals: 'test'
+	publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: '\\Acceptancetest\\target\\surefire-reports', reportFiles: 'index.html', reportName: 'Sanity Test Report', reportTitles: ''])
+    }
+	slackSend channel: 'project-dcs', message: "Build Completed", tokenCredentialId: 'slack'
+}
+ catch (exc) {
+ 	echo 'Build failed'
+	slackSend channel: 'project-dcs', message: "Build Failed", tokenCredentialId: 'slack'
+ }
+}
 	 
