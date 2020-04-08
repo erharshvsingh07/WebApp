@@ -12,7 +12,7 @@ node {
         git url: 'https://github.com/erharshvsingh07/webapp.git'
     }
 	
-	stages {
+	
           stage("build & SonarQube analysis") {
             agent any
             steps {
@@ -28,7 +28,7 @@ node {
               }
             }
           }
-        }
+        
 
     stage('Artifactory configuration') {
         // Tool name from Jenkins configuration
