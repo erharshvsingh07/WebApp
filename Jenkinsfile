@@ -14,24 +14,26 @@ node {
     }
 	
 	
-        tools {
-          maven 'maven'
+    stage('SonarQube Analysis') {
+        withSonarQubeEnv(credentialsId: 'jenkinsonar', installationName: 'sonarqube') { 
+       		sh 'mvn clean package sonar:sonar -Dsonar.host.url=http://13.78.16.99:9000// -Dsonar.sources=. -Dsonar.tests=. -Dsonar.test.inclusions=**/test/java/servlet/createpage_junit.java -Dsonar.exclusions=**/test/java/servlet/createpage_junit.java'
         }
-        
-          stage("build & SonarQube analysis") {
-            agent any
-            withSonarQubeEnv('sonarqube') {
-                sh 'mvn clean package sonar:sonar -Dsonar.host.url=http://54.169.82.166:9000/ -Dsonar.login=1c96b646b7ce4a813dc88aa9670a98ecb776c460 -Dsonar.sources=. -Dsonar.tests=. -Dsonar.test.inclusions=**/test/java/servlet/createpage_junit.java -Dsonar.exclusions=**/test/java/servlet/createpage_junit.java'
-           }
-          }
-          stage("Quality Gate") {
-            steps {
-              timeout(time: 1, unit: 'HOURS') {
-                waitForQualityGate abortPipeline: true
-              }
-            }
-          }
-        
+	timeout(time: 1, unit: 'HOURS') { 
+	    def qg = waitForQualityGate() 
+	    if (qg.status != 'OK') {
+	      error "Pipeline aborted due to quality gate failure: ${qg.status}"
+	    }
+	}             
+  } 
+	
+	stage('Maven build') {
+        buildInfo = rtMaven.run pom: 'pom.xml', goals: 'clean install', buildInfo: buildInfo
+    }
+	
+	stage('Deploy to Test') {
+	deploy adapters: [tomcat7(credentialsId: 'AWStomcat', path: '', url: 'http://18.217.15.48:8080/')], contextPath: '/QAWebapp', war: '**/*.war'
+	jiraSendDeploymentInfo environmentId: 'Test', environmentName: 'QA test', environmentType: 'testing', serviceIds: ['http://18.217.15.48:8080/QAWebapp/'], site: 'devopsbc.atlassian.net', state: 'successful'
+    }
 	
     stage('Artifactory configuration') {
         // Tool name from Jenkins configuration
@@ -41,12 +43,13 @@ node {
         rtMaven.resolver releaseRepo:'libs-release', snapshotRepo:'libs-snapshot', server: server
     }
 
-    stage('Maven build') {
-        buildInfo = rtMaven.run pom: 'pom.xml', goals: 'clean install'
-    }
-
-    stage('Publish build info') {
+     stage('Publish build info') {
         server.publishBuildInfo buildInfo
     }
+
+    stage('UI Test') {
+        buildInfo = rtMaven.run pom: 'functionaltest/pom.xml', goals: 'test'
+	publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: '\\functionaltest\\target\\surefire-reports', reportFiles: 'index.html', reportName: 'UI Test Report', reportTitles: ''])
+    	}
     }
 	 
