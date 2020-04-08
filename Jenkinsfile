@@ -15,17 +15,7 @@ node {
     }
 	
 	
-    stage('SonarQube Analysis') {
-        withSonarQubeEnv(credentialsId: 'jenkinsonar', installationName: 'sonarqube') { 
-       		sh 'mvn clean package sonar:sonar -Dsonar.host.url=http://13.78.16.99:9000// -Dsonar.sources=. -Dsonar.tests=. -Dsonar.test.inclusions=**/test/java/servlet/createpage_junit.java -Dsonar.exclusions=**/test/java/servlet/createpage_junit.java'
-        }
-	timeout(time: 1, unit: 'HOURS') { 
-	    def qg = waitForQualityGate() 
-	    if (qg.status != 'OK') {
-	      error "Pipeline aborted due to quality gate failure: ${qg.status}"
-	    }
-	}             
-  } 
+    
 	
 	stage('Maven build') {
         buildInfo = rtMaven.run pom: 'pom.xml', goals: 'clean install', buildInfo: buildInfo
