@@ -17,14 +17,12 @@ node {
         tools {
           maven 'maven'
         }
-        stages {
+        
           stage("build & SonarQube analysis") {
             agent any
-            steps {
-              withSonarQubeEnv('sonarqube') {
-                sh 'mvn clean package sonar:sonar -Dsonar.host.url=http://3.1.202.152:9000/ -Dsonar.login=ff177383dda7da09c6364187a7d1b057c7fe64b7 -Dsonar.sources=. -Dsonar.tests=. -Dsonar.test.inclusions=**/test/java/servlet/createpage_junit.java -Dsonar.exclusions=**/test/java/servlet/createpage_junit.java'
-              }
-            }
+            withSonarQubeEnv('sonarqube') {
+                sh 'mvn clean package sonar:sonar -Dsonar.host.url=http://54.169.82.166:9000/ -Dsonar.login=1c96b646b7ce4a813dc88aa9670a98ecb776c460 -Dsonar.sources=. -Dsonar.tests=. -Dsonar.test.inclusions=**/test/java/servlet/createpage_junit.java -Dsonar.exclusions=**/test/java/servlet/createpage_junit.java'
+           }
           }
           stage("Quality Gate") {
             steps {
@@ -33,7 +31,7 @@ node {
               }
             }
           }
-        }
+        
 	
     stage('Artifactory configuration') {
         // Tool name from Jenkins configuration
