@@ -55,7 +55,7 @@ node {
     }
 	
     stage('Deploy to Prod') {
-	      deploy adapters: [tomcat7(credentialsId: 'AWStomcat', path: '', url: 'http://3.14.10.76:8080/')], contextPath: '/ProdWebapp', war: '**/*.war'
+	      deploy adapters: [tomcat7(credentialsId: 'AWStomcat', path: '', url: 'http://3.15.165.50:8080/')], contextPath: '/ProdWebapp', war: '**/*.war'
     }
 
     stage('Sanity Test') {
