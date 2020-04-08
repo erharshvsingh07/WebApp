@@ -7,20 +7,22 @@ node {
     def buildInfo
     
  rtMaven.tool = "maven"
-	tools {
-          maven 'maven'
-        }
+	
 
     stage('Clone sources') {
         git url: 'https://github.com/erharshvsingh07/webapp.git'
     }
 	
 	
+        tools {
+          maven 'maven'
+        }
+        stages {
           stage("build & SonarQube analysis") {
             agent any
             steps {
               withSonarQubeEnv('sonar') {
-                sh 'mvn clean package sonar:sonar -Dsonar.host.url=http://13.78.16.99:9000/ -Dsonar.login=803b65adfe7fc9c5fba36787ae3ac4a33bc5 -Dsonar.sources=. -Dsonar.tests=. -Dsonar.test.inclusions=**/test/java/servlet/createpage_junit.java -Dsonar.exclusions=**/test/java/servlet/createpage_junit.java'
+                sh 'mvn clean package sonar:sonar -Dsonar.host.url=http://3.1.202.152:9000/ -Dsonar.login=ff177383dda7da09c6364187a7d1b057c7fe64b7 -Dsonar.sources=. -Dsonar.tests=. -Dsonar.test.inclusions=**/test/java/servlet/createpage_junit.java -Dsonar.exclusions=**/test/java/servlet/createpage_junit.java'
               }
             }
           }
@@ -31,8 +33,8 @@ node {
               }
             }
           }
-        
-
+        }
+	
     stage('Artifactory configuration') {
         // Tool name from Jenkins configuration
         rtMaven.tool = "maven"
