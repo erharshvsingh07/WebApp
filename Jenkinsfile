@@ -30,9 +30,9 @@ node {
         buildInfo = rtMaven.run pom: 'pom.xml', goals: 'clean install', buildInfo: buildInfo
     }
 	
-	stage('Deploy to Test') {
-	deploy adapters: [tomcat7(credentialsId: 'AWStomcat', path: '', url: 'http://18.217.15.48:8080/')], contextPath: '/QAWebapp', war: '**/*.war'
-	jiraSendDeploymentInfo environmentId: 'Test', environmentName: 'QA test', environmentType: 'testing', serviceIds: ['http://18.217.15.48:8080/QAWebapp/'], site: 'devopsbc.atlassian.net', state: 'successful'
+	stage('Deploy to QA') {
+	deploy adapters: [tomcat7(credentialsId: 'qatomcat', path: '', url: 'http://18.223.239.239:8080/')], contextPath: '/QAWebapp', war: '**/*.war'
+	
     }
 	
     stage('Artifactory configuration') {
@@ -47,7 +47,7 @@ node {
         server.publishBuildInfo buildInfo
     }
 
-    stage('UI Test') {
+    stage('UI QA') {
         buildInfo = rtMaven.run pom: 'functionaltest/pom.xml', goals: 'test'
 	publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: '\\functionaltest\\target\\surefire-reports', reportFiles: 'index.html', reportName: 'UI Test Report', reportTitles: ''])
     	}
